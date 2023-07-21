@@ -3,6 +3,8 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors'); // Import cors module
 
+const port = process.env.PORT || 3000;
+
 const app = express();
 app.use(cors()); // Use cors middleware
 
@@ -28,7 +30,7 @@ let users = {};
 
 
 io.on('connection', (socket) => {
-    
+    console.log('THE PORT BEING USED IS: ' + port);
     io.emit('newFlags', flags);
     console.log('New client connected with username ' + users[socket.id]);
     if (users[socket.id] === undefined) {
@@ -86,9 +88,9 @@ function getRandomCountries(countries, count) {
     return selectedCountries;
 }
 
-const port = process.env.PORT || 3000;
 
-server.listen(port, () => console.log('Listening on port ' + port + '...'));
+
+server.listen(port, () => console.log('Listening on port ' + port + ' and waiting for clients to connect...'));
 
 // Export the Express API
 module.exports = server;
