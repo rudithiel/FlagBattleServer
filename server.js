@@ -2,11 +2,13 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors'); // Import cors module
+const cookieParser = require('cookie-parser');
 
 const port = process.env.PORT || 3000;
 
 const app = express();
 app.use(cors()); // Use cors middleware
+app.use(cookieParser());
 
 const server = http.createServer(app);
 const io = socketIo(server, {
@@ -20,72 +22,97 @@ const io = socketIo(server, {
 // Load JSON data
 const countries = require('./countries.json');
 
-let currentFlag = null;
-
-// Initial flags
-let flags = getRandomCountries(countries, 20);
-
+let correctFlag = null;
+let flags = [];
 // Keep track of users and their scores
 let users = {};
+let roundActive = true;
+
+// Initial flags
+setNewFlags();
+
 
 
 io.on('connection', (socket) => {
-    console.log('THE PORT BEING USED IS: ' + port);
-    io.emit('newFlags', flags);
-    console.log('New client connected with username ' + users[socket.id]);
-    if (users[socket.id] === undefined) {
-        users[socket.id] = 'Anonymous';
+    emitFlags();
+    console.log('New client connected with username ' + users[String(socket.handshake.address)]);
+    
+    if (users[String(socket.handshake.address)] === undefined) {
+        console.log('Prompting for username');
+        users[String(socket.handshake.address)] = {
+            username: null,
+            score: 0
+        };
         // Prompt  the user for a username
         socket.emit('setUsername');
     }
 
-    if (currentFlag) {
-        socket.emit('new flag', currentFlag);
-    }
-
-    socket.on('answer', (data) => {
-        // Handle the answer received from a client.
-    });
-
     socket.on('setUsername', (username) => {
         console.log(`Username set: ${username}`);
-        users[socket.id] = username;
+        users[String(socket.handshake.address)].username = username;
         io.emit('users', users);
+        console.log(users);
     });
 
     socket.on('disconnect', () => {
         console.log('Client disconnected');
     });
 
-    socket.on('flagClicked', (countryCode) => {
-        console.log(`Flag clicked: ${countryCode}`);
-        // Handle the event...
-        newCountries = getRandomCountries(countries, 20);
-        // Choose the first country as the correct answer
-        correctFlag = newCountries[0];
-        // Send the new countries to all clients
-        io.emit('newFlags', newCountries);
+    socket.on('answer', (countryCode) => {
+        if (roundActive) {
+            // roundActive = false;
+            console.log(`User ${users[String(socket.handshake.address)].username} answered ${countryCode}`);
+
+            //sleep for 2 seconds
+            if (countryCode === correctFlag.code) {
+                console.log('Correct answer!');
+                users[String(socket.handshake.address)].score++;
+            } else {
+                users[String(socket.handshake.address)].score--;
+            }
+            io.emit('correctAnswer', correctFlag.code);
+
+            setTimeout(() => {
+                // Handle the event...
+                flags = getRandomCountries(countries, 16);
+                // Choose the first country as the correct answer
+                correctFlag = flags[0];
+                // Shuffle the new countries
+                flags.sort(() => Math.random() - 0.5);
+                // Send the new countries to all clients
+                io.emit('newFlags', flags);
+                io.emit('setQuestion', correctFlag.name);
+                io.emit('users', users);
+            }, 3000);
+        }    
       });
 
 });
 
 function getRandomCountries(countries, count) {
-    // Create a copy of the original array
-    let tempCountries = [...countries];
-
-    // Array to hold the selected countries
+    let tempCountries = [...countries]
     let selectedCountries = [];
-
-    // Continue until we've selected the desired number of countries
     while (selectedCountries.length < count && tempCountries.length > 0) {
-        // Generate a random index
         let randomIndex = Math.floor(Math.random() * tempCountries.length);
-
-        // Splice the country out of the temp array, and push it to the selected array
         selectedCountries.push(tempCountries.splice(randomIndex, 1)[0]);
     }
-
     return selectedCountries;
+}
+
+function setNewFlags() {
+    flags = getRandomCountries(countries, 16);
+    // Choose the first country as the correct answer
+    correctFlag = flags[0];
+    // Shuffle the new countries
+    flags.sort(() => Math.random() - 0.5);
+    // Send the new countries to all clients
+    emitFlags();
+}
+
+function emitFlags() {
+    io.emit('newFlags', flags);
+    io.emit('setQuestion', correctFlag.name);
+    io.emit('users', users);
 }
 
 
