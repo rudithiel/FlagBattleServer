@@ -6,6 +6,13 @@ const cors = require('cors'); // Import cors module
 const app = express();
 app.use(cors()); // Use cors middleware
 
+const PieSocket = require("piesocket-nodejs");
+var piesocket = new PieSocket({
+    clusterId: 'YOUR_CLUSTER_ID',
+    apiKey: 'YOUR_API_KEY',
+    secret: 'YOUR_API_SECRET'
+});
+
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
