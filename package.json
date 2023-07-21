@@ -6,6 +6,6 @@
     "socket.io": "^4.7.1"
   },
   "scripts": {
-    "start": "PORT=443 node server.js"
+    "start": "node server.js"
   }
 }
