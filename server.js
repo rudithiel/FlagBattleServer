@@ -85,8 +85,7 @@ function getRandomCountries(countries, count) {
 
     return selectedCountries;
 }
-
-
-
-
 server.listen(4000, () => console.log('Listening on port 4000'));
+
+// Export the Express API
+module.exports = server;
