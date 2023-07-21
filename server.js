@@ -6,13 +6,6 @@ const cors = require('cors'); // Import cors module
 const app = express();
 app.use(cors()); // Use cors middleware
 
-const PieSocket = require("piesocket-nodejs");
-var piesocket = new PieSocket({
-    clusterId: 'YOUR_CLUSTER_ID',
-    apiKey: 'YOUR_API_KEY',
-    secret: 'YOUR_API_SECRET'
-});
-
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
@@ -92,7 +85,10 @@ function getRandomCountries(countries, count) {
 
     return selectedCountries;
 }
-server.listen(4000, () => console.log('Listening on port 4000'));
+
+const port = process.env.PORT || 3000;
+
+server.listen(port, () => console.log('Listening on port ' + port + '...'));
 
 // Export the Express API
 module.exports = server;
