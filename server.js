@@ -16,7 +16,7 @@ app.use(cookieParser());
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: "http://localhost:8080", // Allow all origins
+        origin: ["http://localhost:8080", "https://flag-battle-client.vercel.app/"], 
         methods: ["GET", "POST"], // Allow GET and POST methods
         credentials: true // Allow credentials
     }
