@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
     if (users[String(socket.handshake.address)] === undefined) {
         console.log('Prompting for username');
         users[String(socket.handshake.address)] = {
-            username: null,
+            username: "Anonymous",
             score: 0
         };
         // Prompt  the user for a username
