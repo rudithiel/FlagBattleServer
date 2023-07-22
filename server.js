@@ -16,7 +16,7 @@ app.use(cookieParser());
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: process.env.NODE_ENV === "production" ? "https://flag-battle-client.vercel.app/" : "http://localhost:8080", 
+        origin: process.env.NODE_ENV === "production" ? "https://flag-battle-client.vercel.app" : "http://localhost:8080", 
         methods: ["GET", "POST"], // Allow GET and POST methods
         credentials: true // Allow credentials
     }
