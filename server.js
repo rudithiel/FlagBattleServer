@@ -73,6 +73,18 @@ io.on('connection', (socket) => {
         console.log(users);
     });
 
+    socket.on('resetGame', (password) => {
+        if (password === "Flaggy") {
+            console.log('Resetting game');
+            // Reset scores
+            Object.values(users).forEach(user => user.score = 0);
+            io.emit('users', users);
+            setNewFlags();
+        } else {
+            console.log('Wrong password');
+        }
+    });
+
     socket.on('disconnect', () => {
         console.log('Client disconnected');
     });
