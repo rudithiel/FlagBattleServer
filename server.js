@@ -56,8 +56,8 @@ io.on('connection', (socket) => {
             };
             // Prompt  the user for a username
             socket.emit('setUsername');
-            
         }
+        socket.userId = userId;
         console.log('Client connected with username ' + users[userId].username);
     });
 
@@ -85,9 +85,9 @@ io.on('connection', (socket) => {
             //sleep for 2 seconds
             if (countryCode === correctFlag.code) {
                 console.log('Correct answer!');
-                users[userId].score++;
+                users[socket.userId].score++;
             } else {
-                users[userId].score--;
+                users[socket.userId].score--;
             }
             io.emit('correctAnswer', correctFlag.code);
 
