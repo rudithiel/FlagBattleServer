@@ -36,11 +36,9 @@ setNewFlags();
 
 
 
-io.on('connection', (socket, id) => {
-    const userId = socket.handshake.headers.cookie 
-        ? socket.handshake.headers.cookie.replace('userId=', '') // If the cookie exists, get the user ID from it
-        : uuidv4(); // If the cookie doesn't exist, generate a new user ID
-
+io.on('connection', (socket) => {
+    const userId = socket.handshake.headers.cookie ? socket.handshake.headers.cookie.replace('userId=', '') : uuidv4(); 
+    console.log("User connected with userId: " + userId);
     // Set the user ID cookie with a 1 year expiry
     socket.emit('userId', userId);
     console.log('User ID: ' + userId);
