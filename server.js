@@ -60,7 +60,7 @@ io.on('connection', (socket) => {
 
     socket.on('answer', (countryCode) => {
         if (roundActive) {
-            // roundActive = false;
+            roundActive = false;
             console.log(`User ${users[String(socket.handshake.address)].username} answered ${countryCode}`);
 
             //sleep for 2 seconds
@@ -83,6 +83,7 @@ io.on('connection', (socket) => {
                 io.emit('newFlags', flags);
                 io.emit('setQuestion', correctFlag.name);
                 io.emit('users', users);
+                roundActive = true;
             }, 3000);
         }    
       });
