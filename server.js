@@ -17,7 +17,6 @@ const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
         origin: process.env.NODE_ENV === "production" ? "https://flag-battle-client.vercel.app" : "http://localhost:8080", 
-        methods: ["GET", "POST"], // Allow GET and POST methods
         credentials: true // Allow credentials
     }
 });
@@ -37,25 +36,30 @@ setNewFlags();
 
 
 io.on('connection', (socket) => {
-    console.log('Client connected with cookie ' + socket.handshake.headers.cookie);
-    const userId = socket.handshake.headers.cookie ? socket.handshake.headers.cookie.replace('userId=', '') : uuidv4(); 
-    console.log("User connected with userId: " + userId);
+    console.log('Client connected');
+    // const userId = socket.handshake.headers.cookie ? socket.handshake.headers.cookie.replace('userId=', '') : uuidv4(); 
+    socket.emit('getUserId');
     // Set the user ID cookie with a 1 year expiry
-    socket.emit('userId', userId);
-    console.log('User ID: ' + userId);
     emitFlags();
 
-    if (users[userId] === undefined) {
-        console.log('Prompting for username');
-        users[userId] = {
-            username: "Anonymous",
-            score: 0
-        };
-        // Prompt  the user for a username
-        socket.emit('setUsername');
-    }
-
-    console.log('Client connected with username ' + users[userId].username);
+    socket.on('getUserId', (userIdCookie) => {
+        console.log('User ID: ' + userIdCookie);
+        userId = userIdCookie.replace('userId=', '');
+        if (users[userId] === undefined ) {
+            userId = uuidv4();
+            // Set the user ID cookie with a 1 year expiry
+            socket.emit('setUserId', userId);
+            console.log('Prompting for username');
+            users[userId] = {
+                username: "Anonymous",
+                score: 0
+            };
+            // Prompt  the user for a username
+            socket.emit('setUsername');
+            
+        }
+        console.log('Client connected with username ' + users[userId].username);
+    });
 
     socket.on('setUsername', (username) => {
         // Check that username is not empty and that it is not already taken
