@@ -68,7 +68,7 @@ io.on('connection', (socket) => {
             return;
         }
         console.log(`Username set: ${username}`);
-        users[userId].username = username;
+        users[socket.userId].username = username;
         io.emit('users', users);
         console.log(users);
     });
