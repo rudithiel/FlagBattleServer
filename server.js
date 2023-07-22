@@ -37,6 +37,7 @@ setNewFlags();
 
 
 io.on('connection', (socket) => {
+    console.log('Client connected with cookie ' + socket.handshake.headers.cookie);
     const userId = socket.handshake.headers.cookie ? socket.handshake.headers.cookie.replace('userId=', '') : uuidv4(); 
     console.log("User connected with userId: " + userId);
     // Set the user ID cookie with a 1 year expiry
