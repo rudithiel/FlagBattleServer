@@ -31,7 +31,7 @@ let wrongFlags = [];
 let users = {};
 let userOrder = [];
 let roundActive = true;
-let numFlags = 12;
+let numFlags = 16;
 
 let currentPlayer = null;
 let nextPlayer = null;
@@ -194,6 +194,8 @@ function serverLogs() {
 }
 
 setInterval(updateGameState, 100);
+
+setInterval(serverLogs, 1000);
 
 server.listen(port, () => console.log('Listening on port ' + port + ' and waiting for clients to connect...'));
 
