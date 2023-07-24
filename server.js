@@ -26,14 +26,18 @@ const countries = require('./countries.json');
 
 let correctFlag = null;
 let flags = [];
+let wrongFlags = [];
 // Keep track of users and their scores
 let users = {};
+let userOrder = [];
 let roundActive = true;
+let numFlags = 12;
+
+let currentPlayer = null;
+let nextPlayer = null;
 
 // Initial flags
 setNewFlags();
-
-
 
 io.on('connection', (socket) => {
     console.log('Client connected');
@@ -56,7 +60,10 @@ io.on('connection', (socket) => {
             };
             // Prompt  the user for a username
             socket.emit('setUsername');
+            userOrder.push(userId);
+            console.log("userOrder: " + userOrder);
         }
+        console.log(users[userId]);
         socket.userId = userId;
         console.log('Client connected with username ' + users[userId].username);
     });
@@ -77,9 +84,11 @@ io.on('connection', (socket) => {
         if (password === "Flaggy") {
             console.log('Resetting game');
             // Reset scores
-            Object.values(users).forEach(user => user.score = 0);
-            io.emit('users', users);
+            users = {};
+            userOrder = [];
+            currentPlayer = null;
             setNewFlags();
+            io.emit('resetGame');
         } else {
             console.log('Wrong password');
         }
@@ -90,32 +99,41 @@ io.on('connection', (socket) => {
     });
 
     socket.on('answer', (countryCode) => {
-        if (roundActive) {
-            roundActive = false;
-            console.log(`User ${users[userId].username} answered ${countryCode}`);
-
-            //sleep for 2 seconds
-            if (countryCode === correctFlag.code) {
-                console.log('Correct answer!');
-                users[socket.userId].score++;
-            } else {
-                users[socket.userId].score--;
+        user = users[socket.userId];
+        if (roundActive ) {
+            console.log(`User ${users[socket.userId].username} answered ${countryCode}`);
+            if (users[socket.userId] === currentPlayer) {
+                //sleep for 2 seconds
+                if (countryCode === correctFlag.code) {
+                    roundActive = false;
+                    console.log('Correct answer!');
+                    users[socket.userId].score++;
+                    wrongFlags = [];
+                    io.emit('correctAnswer', correctFlag.code);
+                    setTimeout(() => {
+                        // Handle the event...
+                        flags = getRandomCountries(countries, numFlags);
+                        // Choose the first country as the correct answer
+                        correctFlag = flags[0];
+                        // Shuffle the new countries
+                        flags.sort(() => Math.random() - 0.5);
+                        // Send the new countries to all clients
+                        let nextPlayer = userOrder.shift();
+                        userOrder.push(nextPlayer);
+                        currentPlayer = users[nextPlayer];
+                        io.emit('newFlags', flags);
+                        io.emit('setQuestion', correctFlag.name);
+                        io.emit('users', users);
+                        roundActive = true;
+                    }, 4000);
+                } else {
+                    wrongFlags.push(countryCode);
+                    let nextPlayer = userOrder.shift();
+                    userOrder.push(nextPlayer);
+                    currentPlayer = users[nextPlayer];
+                }
             }
-            io.emit('correctAnswer', correctFlag.code);
-
-            setTimeout(() => {
-                // Handle the event...
-                flags = getRandomCountries(countries, 16);
-                // Choose the first country as the correct answer
-                correctFlag = flags[0];
-                // Shuffle the new countries
-                flags.sort(() => Math.random() - 0.5);
-                // Send the new countries to all clients
-                io.emit('newFlags', flags);
-                io.emit('setQuestion', correctFlag.name);
-                io.emit('users', users);
-                roundActive = true;
-            }, 3000);
+            
         }    
       });
 
@@ -132,7 +150,7 @@ function getRandomCountries(countries, count) {
 }
 
 function setNewFlags() {
-    flags = getRandomCountries(countries, 16);
+    flags = getRandomCountries(countries, numFlags);
     // Choose the first country as the correct answer
     correctFlag = flags[0];
     // Shuffle the new countries
@@ -147,7 +165,35 @@ function emitFlags() {
     io.emit('users', users);
 }
 
+function updateGameState() {
+    if (roundActive && (Object.keys(users).length > 0)) {
+        if (currentPlayer == null || currentPlayer == undefined) {
+            // If there is no current player, set the first user as the current player
+            let firstUser = userOrder.shift();
+            userOrder.push(firstUser);
+            currentPlayer = users[firstUser];
+        } 
+        io.emit('updateGameState', roundActive);
+        io.emit('wrongFlags', wrongFlags);
+        io.emit('currentPlayer', currentPlayer);
+        io.emit('users', users);
+        io.emit('updateState', {
+            roundActive: roundActive,
+            currentPlayer: currentPlayer,
+            nextPlayer: nextPlayer,
+            users: users
+        })
+    }
+   
+}
 
+function serverLogs() {
+    console.log("Users: " + JSON.stringify(users));
+    console.log("User order: " + userOrder);
+    console.log("Current player: " + currentPlayer);
+}
+
+setInterval(updateGameState, 100);
 
 server.listen(port, () => console.log('Listening on port ' + port + ' and waiting for clients to connect...'));
 
