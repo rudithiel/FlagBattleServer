@@ -126,6 +126,9 @@ io.on('connection', (socket) => {
                         roundActive = true;
                     }, 4000);
                 } else {
+                    if (users[socket.userId].score > 0) {
+                        users[socket.userId].score--;
+                    } 
                     wrongFlags.push(countryCode);
                     let nextPlayer = userOrder.shift();
                     userOrder.push(nextPlayer);
