@@ -101,7 +101,6 @@ io.on('connection', (socket) => {
     socket.on('answer', (countryCode) => {
         user = users[socket.userId];
         if (roundActive ) {
-            console.log(`User ${users[socket.userId].username} answered ${countryCode}`);
             if (users[socket.userId] === currentPlayer) {
                 //sleep for 2 seconds
                 if (countryCode === correctFlag.code) {
