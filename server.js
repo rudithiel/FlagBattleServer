@@ -149,7 +149,15 @@ function getRandomCountries(countries, count) {
         randomCountry = tempCountries[randomIndex];
         // Check if folder outlines contains the flag
         if (randomCountry['hasOutline'] === true) {
-            selectedCountries.push(tempCountries.splice(randomIndex, 1)[0]);
+            let random_1_or_0 = Math.floor(Math.random() * 2);
+            tempCountry = tempCountries.splice(randomIndex, 1)[0];
+            if (random_1_or_0 === 1) {
+                tempCountry['questionType'] = 'flag';
+            } else {
+                tempCountry['questionType'] = 'outline';
+            }
+
+            selectedCountries.push(tempCountry);
         }
     }
     return selectedCountries;
