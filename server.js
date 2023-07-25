@@ -146,7 +146,11 @@ function getRandomCountries(countries, count) {
     let selectedCountries = [];
     while (selectedCountries.length < count && tempCountries.length > 0) {
         let randomIndex = Math.floor(Math.random() * tempCountries.length);
-        selectedCountries.push(tempCountries.splice(randomIndex, 1)[0]);
+        randomCountry = tempCountries[randomIndex];
+        // Check if folder outlines contains the flag
+        if (randomCountry['hasOutline'] === true) {
+            selectedCountries.push(tempCountries.splice(randomIndex, 1)[0]);
+        }
     }
     return selectedCountries;
 }
