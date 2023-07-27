@@ -32,7 +32,7 @@ let users = {};
 let userOrder = [];
 let roundActive = true;
 let numFlags = 16;
-
+let roundType = 'flag';
 let currentPlayer = null;
 let nextPlayer = null;
 
@@ -99,8 +99,10 @@ io.on('connection', (socket) => {
     });
 
     socket.on('answer', (countryCode) => {
+        console.log('Answer received: ' + countryCode)
         user = users[socket.userId];
         if (roundActive ) {
+            console.log('Round active');
             if (users[socket.userId] === currentPlayer) {
                 //sleep for 2 seconds
                 if (countryCode === correctFlag.code) {
@@ -109,22 +111,7 @@ io.on('connection', (socket) => {
                     users[socket.userId].score++;
                     wrongFlags = [];
                     io.emit('correctAnswer', correctFlag.code);
-                    setTimeout(() => {
-                        // Handle the event...
-                        flags = getRandomCountries(countries, numFlags);
-                        // Choose the first country as the correct answer
-                        correctFlag = flags[0];
-                        // Shuffle the new countries
-                        flags.sort(() => Math.random() - 0.5);
-                        // Send the new countries to all clients
-                        let nextPlayer = userOrder.shift();
-                        userOrder.push(nextPlayer);
-                        currentPlayer = users[nextPlayer];
-                        io.emit('newFlags', flags);
-                        io.emit('setQuestion', correctFlag.name);
-                        io.emit('users', users);
-                        roundActive = true;
-                    }, 4000);
+                    setTimeout(newRound, 4000);
                 } else {
                     if (users[socket.userId].score > 0) {
                         users[socket.userId].score--;
@@ -141,30 +128,49 @@ io.on('connection', (socket) => {
 
 });
 
-function getRandomCountries(countries, count) {
+function getRandomCountries(countries, count, roundType) {
     let tempCountries = [...countries]
     let selectedCountries = [];
     while (selectedCountries.length < count && tempCountries.length > 0) {
         let randomIndex = Math.floor(Math.random() * tempCountries.length);
         randomCountry = tempCountries[randomIndex];
         // Check if folder outlines contains the flag
-        if (randomCountry['hasOutline'] === true) {
-            let random_1_or_0 = Math.floor(Math.random() * 2);
-            tempCountry = tempCountries.splice(randomIndex, 1)[0];
-            if (random_1_or_0 === 1) {
-                tempCountry['questionType'] = 'flag';
-            } else {
-                tempCountry['questionType'] = 'outline';
-            }
-
+        if ((roundType == 'outline') && (randomCountry['hasOutline'] === true)) {
+            let tempCountry = tempCountries.splice(randomIndex, 1)[0];
             selectedCountries.push(tempCountry);
         }
     }
     return selectedCountries;
 }
 
+function newRound() {
+    // Get random int for 1 to 3
+    randInt = Math.floor(Math.random() * 3) + 1;
+    if (randInt === 1) {
+        roundType = 'flag';
+    } else if (randInt === 2) {
+        roundType = 'outline';
+    } else {
+        roundType = 'capital';
+    }
+    // Handle the event...
+    flags = getRandomCountries(countries, numFlags, roundType);
+    correctFlag = flags[0];
+    // Shuffle the new countries
+    flags.sort(() => Math.random() - 0.5);
+    // Send the new countries to all clients
+    let nextPlayer = userOrder.shift();
+    userOrder.push(nextPlayer);
+    currentPlayer = users[nextPlayer];
+    io.emit('roundType', roundType)
+    io.emit('newFlags', flags);
+    io.emit('setQuestion', correctFlag.name);
+    io.emit('users', users);
+    roundActive = true;
+}
+
 function setNewFlags() {
-    flags = getRandomCountries(countries, numFlags);
+    flags = getRandomCountries(countries, numFlags, roundType);
     // Choose the first country as the correct answer
     correctFlag = flags[0];
     // Shuffle the new countries
@@ -195,7 +201,8 @@ function updateGameState() {
             roundActive: roundActive,
             currentPlayer: currentPlayer,
             nextPlayer: nextPlayer,
-            users: users
+            users: users,
+            roundType: roundType
         })
     }
    
