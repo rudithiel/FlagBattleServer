@@ -16,7 +16,7 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new socketIo(server, {
     cors: {
-        origin: process.env.NODE_ENV === "production" ? "https://flag-battle-client.vercel.app" : "http://localhost:8080", 
+        origin: process.env.NODE_ENV === "production" ? "https://humblebraggers-quiz-game.vercel.app" : "http://localhost:8080", 
         credentials: true
     }
 });
@@ -30,7 +30,7 @@ let userOrder = [];
 const totalRounds = 10;
 
 async function fetchQuestions() {
-    const response = await fetch('https://opentdb.com/api.php?amount=10&type=multiple');
+    const response = await fetch('https://opentdb.com/api.php?amount=10&category=9&type=multiple');
     const data = await response.json();
     console.log(data);
     return data.results;
@@ -88,12 +88,12 @@ io.on('connection', (socket) => {
         if ((answer === questions[currentRound].correct_answer) && roundActive) {
             roundActive = false;
             console.log('Correct answer!');
-            scores[socket.userId] += 1;
+            users[socket.userId].score += 1;
             io.emit('correctUser', users[socket.userId].username); // Notify all users that the answer was correct
             io.emit('correctAnswer', answer); // Notify all users that the answer was correct
             nextRoundCounter();
         } else if (roundActive) {
-            scores[socket.userId] -= 1;
+            users[socket.userId].score -= 1;
             console.log('Wrong answer');
             socket.emit('wrongAnswer', answer); // Notify the specific user that the answer was wrong
             io.emit('disableAnswer', answer); // Notify all users to disable this answer
@@ -108,6 +108,7 @@ io.on('connection', (socket) => {
     }
 
     function emitQuestion() {
+        emitRoundInfo();
         // If questions is empty, fetch new questions
         if (questions.length === 0) {
             fetchQuestions().then((data) => {
@@ -120,7 +121,17 @@ io.on('connection', (socket) => {
         }
     }
 
-    function nextRoundCounter() {
+    function nextRoundCounter(increaseRound = true) {
+        emitRoundInfo();
+        // Check if the game is over
+        if (currentRound+1 === totalRounds) {
+            // Find winner based on highest score in users object
+            let winner = Object.keys(users).reduce((a, b) => users[a].score > users[b].score ? a : b);
+
+            io.emit('gameOver', users[winner].username);
+            resetGame();
+            return;
+        }
         // Emit a 5 second countdown to the next round
         let counter = 5;
         const interval = setInterval(() => {
@@ -128,7 +139,9 @@ io.on('connection', (socket) => {
             counter--;
             if (counter < 0) {
                 clearInterval(interval);
-                currentRound++;
+                if (increaseRound) {
+                    currentRound++;
+                }
                 roundActive = true;
                 io.emit('newRound');
                 emitQuestion();
@@ -136,10 +149,19 @@ io.on('connection', (socket) => {
         }, 1000);
     }
 
+    function emitRoundInfo() {
+        io.emit('roundInfo', "Round " + (currentRound +1) + " of " + totalRounds);
+    }
+
     function resetGame() {
-        users = {};
-        scores = { player1: 0, player2: 0 };
+        for (let user in users) {
+            users[user].score = 0;
+        }
         currentRound = 0;
+        roundActive = true;
+        // Wait 5 seconds before starting the next round
+        startGame();
+        nextRoundCounter(false);
     }
 });
 
