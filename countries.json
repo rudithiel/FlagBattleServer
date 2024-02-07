@@ -817,7 +817,7 @@
     "flag_4x3": "flags/4x3/fm.svg",
     "iso": true,
     "name": "Federated States of Micronesia",
-    "hasOutline": true
+    "hasOutline": false
   },
   {
     "capital": "Suva",
@@ -1263,7 +1263,7 @@
     "flag_4x3": "flags/4x3/ki.svg",
     "iso": true,
     "name": "Kiribati",
-    "hasOutline": true
+    "hasOutline": false
   },
   {
     "capital": "Pristina",
@@ -1433,7 +1433,7 @@
     "flag_4x3": "flags/4x3/mv.svg",
     "iso": true,
     "name": "Maldives",
-    "hasOutline": true
+    "hasOutline": false
   },
   {
     "capital": "Bamako",
@@ -1463,7 +1463,7 @@
     "flag_4x3": "flags/4x3/mh.svg",
     "iso": true,
     "name": "Marshall Islands",
-    "hasOutline": true
+    "hasOutline": false
   },
   {
     "capital": "Fort-de-France",
@@ -2083,7 +2083,7 @@
     "flag_4x3": "flags/4x3/sc.svg",
     "iso": true,
     "name": "Seychelles",
-    "hasOutline": true
+    "hasOutline": false
   },
   {
     "capital": "Freetown",
@@ -2431,7 +2431,7 @@
     "flag_4x3": "flags/4x3/tv.svg",
     "iso": true,
     "name": "Tuvalu",
-    "hasOutline": true
+    "hasOutline": false
   },
   {
     "capital": "Kampala",
