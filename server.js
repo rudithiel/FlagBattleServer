@@ -15,7 +15,7 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new socketIo(server, {
     cors: {
-        origin: process.env.NODE_ENV === "production" ? "https://flag-battle-client.vercel.apps" : "http://localhost:8080", 
+        origin: process.env.NODE_ENV === "production" ? "https://flag-battle-client.vercel.app" : "http://localhost:8080", 
         credentials: true
     }
 });
