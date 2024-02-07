@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
-const fetch = require('node-fetch'); // Make sure to install node-fetch or axios
+import fetch from 'node-fetch';
 const { v4: uuidv4 } = require('uuid');
 
 const port = process.env.PORT || 3000;
