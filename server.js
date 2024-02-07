@@ -1,12 +1,13 @@
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-const cors = require('cors');
-import fetch from 'node-fetch';
-const { v4: uuidv4 } = require('uuid');
+import express from 'express';
+import http from 'http';
+import { Server as socketIo } from 'socket.io';
+import cors from 'cors';
+import fetch from 'node-fetch'; // fetch is already using import
+import { v4 as uuidv4 } from 'uuid';
 
 const port = process.env.PORT || 3000;
 const app = express();
+
 
 app.use(express.json());
 app.use(cors());
